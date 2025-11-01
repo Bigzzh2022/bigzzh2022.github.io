@@ -98,12 +98,9 @@ check_command "node"
 check_command "npm"
 
 # 检查Hexo是否安装
-if ! npm list -g hexo &> /dev/null; then
-    if [ ! -d "node_modules/hexo" ]; then
-        print_error "Hexo未安装，请先安装Hexo"
-        print_info "运行: npm install -g hexo"
-        exit 1
-    fi
+if ! npm list hexo &> /dev/null; then
+    print_info "安装Hexo依赖..."
+    npm install
 fi
 
 # 2. 检查Git配置
@@ -159,7 +156,18 @@ if ! git remote get-url origin &> /dev/null; then
     git remote add origin git@github.com:bigzzh2022/bigzzh2022.github.io.git
 fi
 
-# 5. 清理和生成静态文件
+# 确保远程仓库URL正确
+current_origin=$(git remote get-url origin)
+expected_origin="git@github.com:bigzzh2022/bigzzh2022.github.io.git"
+if [ "$current_origin" != "$expected_origin" ]; then
+    print_warning "远程仓库URL不正确，正在更新..."
+    git remote set-url origin "$expected_origin"
+fi
+
+# 5. 安装依赖和生成静态文件
+print_info "安装依赖..."
+npm install
+
 if [ "$SKIP_CLEAN" = false ]; then
     print_info "清理旧的静态文件..."
     hexo clean
